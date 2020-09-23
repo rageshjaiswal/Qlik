@@ -23,4 +23,7 @@ LOAD
 AUTOGENERATE FieldValueCount('OrderDate');
 
 
-Link for Code - https://qlikviewcookbook.com/2013/09/fastest-method-to-read-maxfield-from-a-qvd/
+Link for Code - 
+1. https://qlikviewcookbook.com/2013/09/fastest-method-to-read-maxfield-from-a-qvd/
+2. https://qlikviewcookbook.com/2015/05/better-calendar-scripts/
+
