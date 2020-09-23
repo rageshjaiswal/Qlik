@@ -1,0 +1,68 @@
+```python
+d1:
+load num(min([Date]))  as min,
+  num(max([Date]))  as max
+Resident [Link Table]
+where noCal<>'1'
+order by  [Date]; 
+
+
+let vDt_min=Num(Peek('min',0,'d1'));
+let vDt_max=Num(Peek('max',-1,'d1'));
+
+
+d2:
+load
+  date($(vDt_min) + rowno()-1) As TempDate
+Autogenerate
+$(vDt_max)-$(vDt_min)+1;
+
+
+CALENDER1:
+load
+  date(TempDate,'MM/DD/YYYY') as Date,
+  num(TempDate) as Numdate,
+  Month(TempDate) AS Month,
+  Num(Month(TempDate)) AS numMonth,
+
+  'Week' & Ceil(Day(TempDate)/7) as WeekNo,
+
+  if(Num(Month(TempDate))<7 , (YEAR(TempDate)-1),  YEAR(TempDate)) as FiscalYear,
+
+  Month(TempDate)&'-'&YEAR(TempDate) as [MonthYear],
+  YEAR(TempDate) AS Year,
+  (YEAR(TempDate)*12+Num(Month(TempDate))) as [MonthSerialNumber],
+
+ dual('Q'&ceil((mod(Month(TempDate)-7,12)+1)/3),ceil((mod(Month(TempDate)-7,12)+1)/3)) as Quarter,
+ if(isnull(peek('Quarter'))
+ ,1
+ ,if(dual('Q'&ceil((mod(Month(TempDate)-7,12)+1)/3),ceil((mod(Month(TempDate)-7,12)+1)/3))=peek('Quarter',-1)
+     ,peek('QuarterSerialNumber')
+     ,peek('QuarterSerialNumber')+1
+    )
+ ) as QuarterSerialNumber,If(num(weekday(TempDate)) >=5 ,0,1) as IsWorkingDay
+RESIDENT d2  
+order by TempDate;
+
+CALENDER:
+Load *,
+ApplyMap('Map_QuarterName',text(Quarter),'Not Found' ) as [Quarter Name],
+
+'FY : '&right(FiscalYear,2)&'-'&right(FiscalYear+1,2) as FY,
+ApplyMap('Map_QuarterName',text(Quarter),'Not Found' )&' ('&'FY : '&right(FiscalYear,2)&'-'&right(FiscalYear+1,2)&')' 
+as [Quarter Year]
+Resident CALENDER1;
+
+
+DROP TABLE CALENDER1;
+DROP TABLE c1;  
+DROP TABLE c2;
+
+MonthlyCalendar:
+Load
+MonthSerialNumber,
+Sum(IsWorkingDay) as NoOfWorkingDays
+Resident CALENDER
+Group By MonthSerialNumber;
+
+```
